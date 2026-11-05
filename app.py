@@ -868,7 +868,7 @@ def week_df():
         ]
 
     # If last 7 days selected, dataframe filters to last 7 days
-    else:
+    elif setting == "last_7_days":
         today = date.today()
         cutoff_date = today - pd.Timedelta(days=6)
 
