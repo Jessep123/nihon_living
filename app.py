@@ -221,7 +221,7 @@ ui.tags.style("""
     .weekly-donut-card {
         margin: 10px 0;
     }
-    
+
 }
 """)
 
@@ -367,83 +367,83 @@ with ui.layout_sidebar():
             #                             f"{currency_symbol()}{week_gas:,.2f}"
 
 
-            with ui.card(class_="weekly-donut-card"):
-                ui.h5("Weekly spending by category", class_="weekly-donut-title")
+        with ui.card(class_="weekly-donut-card"):
+            ui.h5("Weekly spending by category", class_="weekly-donut-title")
 
-                @render.plot(alt="Weekly spending by category")
-                def weekly_donut():
-                    price_col = input.weekly_currency()
+            @render.plot(alt="Weekly spending by category")
+            def weekly_donut():
+                price_col = input.weekly_currency()
 
-                    donut_df = (
-                        week_df()
-                        .groupby("Category", as_index=False)[price_col]
-                        .sum()
-                    )
+                donut_df = (
+                    week_df()
+                    .groupby("Category", as_index=False)[price_col]
+                    .sum()
+                )
 
-                    donut_df = donut_df[donut_df[price_col] > 0]
+                donut_df = donut_df[donut_df[price_col] > 0]
 
-                    fig, ax = plt.subplots(figsize=(4.4, 4.6), dpi=150)
+                fig, ax = plt.subplots(figsize=(4.4, 4.6), dpi=150)
 
-                    if donut_df.empty:
-                        ax.text(
-                            0.5, 0.5, "No spending this week",
-                            ha="center", va="center", fontsize=13,
-                        )
-                        ax.axis("off")
-                        return fig
-
-                    colors = [
-                        "#2ca02c",  # green
-                        "#1f77b4",  # blue
-                        "#ff7f0e",  # orange
-                        "#9467bd",  # purple
-                        "#a21414",  # red
-                        "#17becf",  # teal
-                    ]
-
-                    total = donut_df[price_col].sum()
-                    symbol = currency_symbol()
-
-                    wedges, _ = ax.pie(
-                        donut_df[price_col],
-                        colors=colors[:len(donut_df)],
-                        startangle=90,
-                        counterclock=False,
-                        wedgeprops=dict(width=0.38, edgecolor="white", linewidth=2),
-                    )
-
+                if donut_df.empty:
                     ax.text(
-                        0, 0.10, "Total",
-                        ha="center", va="center",
-                        fontsize=10, color="#6c757d",
+                        0.5, 0.5, "No spending this week",
+                        ha="center", va="center", fontsize=13,
                     )
-                    ax.text(
-                        0, -0.08, f"{symbol}{total:,.0f}",
-                        ha="center", va="center",
-                        fontsize=19, fontweight="bold", color="#212529",
-                    )
-
-                    legend_labels = [
-                        f"{row['Category']}  {symbol}{row[price_col]:,.0f}"
-                        for _, row in donut_df.iterrows()
-                    ]
-
-                    ax.legend(
-                        wedges,
-                        legend_labels,
-                        loc="upper center",
-                        bbox_to_anchor=(0.5, -0.03),
-                        ncol=2,
-                        frameon=False,
-                        fontsize=8,
-                        columnspacing=1.2,
-                        handlelength=1,
-                    )
-
-                    ax.set(aspect="equal")
-                    fig.subplots_adjust(top=0.95, bottom=0.18)
-
+                    ax.axis("off")
                     return fig
+
+                colors = [
+                    "#2ca02c",  # green
+                    "#1f77b4",  # blue
+                    "#ff7f0e",  # orange
+                    "#9467bd",  # purple
+                    "#a21414",  # red
+                    "#17becf",  # teal
+                ]
+
+                total = donut_df[price_col].sum()
+                symbol = currency_symbol()
+
+                wedges, _ = ax.pie(
+                    donut_df[price_col],
+                    colors=colors[:len(donut_df)],
+                    startangle=90,
+                    counterclock=False,
+                    wedgeprops=dict(width=0.38, edgecolor="white", linewidth=2),
+                )
+
+                ax.text(
+                    0, 0.10, "Total",
+                    ha="center", va="center",
+                    fontsize=10, color="#6c757d",
+                )
+                ax.text(
+                    0, -0.08, f"{symbol}{total:,.0f}",
+                    ha="center", va="center",
+                    fontsize=19, fontweight="bold", color="#212529",
+                )
+
+                legend_labels = [
+                    f"{row['Category']}  {symbol}{row[price_col]:,.0f}"
+                    for _, row in donut_df.iterrows()
+                ]
+
+                ax.legend(
+                    wedges,
+                    legend_labels,
+                    loc="upper center",
+                    bbox_to_anchor=(0.5, -0.03),
+                    ncol=2,
+                    frameon=False,
+                    fontsize=8,
+                    columnspacing=1.2,
+                    handlelength=1,
+                )
+
+                ax.set(aspect="equal")
+                fig.subplots_adjust(top=0.95, bottom=0.18)
+
+                return fig
 
             @render.data_frame
             def week_table():
