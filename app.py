@@ -9,6 +9,8 @@ from google_sheet_import import load_processed_data
 import pandas as pd
 import numpy as np
 import matplotlib
+import matplotlib.pyplot as plt
+
 
 from faicons import icon_svg
 import plotly.express as px
@@ -143,6 +145,19 @@ ui.tags.style("""
     margin-bottom: 12px;
 }
 
+.weekly-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 8px 24px;
+    margin-bottom: 12px;
+}
+
+.weekly-controls .shiny-input-container {
+    width: auto;
+    margin: 0;
+}
+
 .weekly-summary .data-frame,
 .weekly-summary .shiny-data-frame {
     overflow-x: auto;
@@ -171,6 +186,10 @@ ui.tags.style("""
         padding: 10px;
     }
 
+    .weekly-controls {
+        gap: 6px 14px;
+    }
+
     .weekly-summary .form-check-inline,
     .weekly-summary .radio-inline {
         display: block;
@@ -180,6 +199,29 @@ ui.tags.style("""
     .weekly-summary .js-plotly-plot {
         width: 100% !important;
     }
+
+.weekly-donut-card {
+    max-width: 460px;
+    margin: 12px auto;
+}
+
+.weekly-donut-title {
+    text-align: center;
+    margin: 4px 0 0;
+    font-size: 1rem;
+}
+
+.weekly-donut-card img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+@media (max-width: 576px) {
+    .weekly-donut-card {
+        margin: 10px 0;
+    }
+    
 }
 """)
 
@@ -232,22 +274,25 @@ with ui.layout_sidebar():
 # Weekly Summary
 # ================================================================================================================================
     with ui.panel_conditional("input.view == 'Weekly Summary'", class_="weekly-summary"):
-        ui.input_radio_buttons(
-                                "weekly_currency",
-                                "",
-                                choices={"Price NZD": "NZD", "Price": "Yen"},
-                                selected="Price"
-                            )
+        with ui.div(class_="weekly-controls"):
+            ui.input_radio_buttons(
+                "weekly_currency",
+                "",
+                choices={"Price NZD": "NZD", "Price": "Yen"},
+                selected="Price",
+                inline=True,
+            )
 
-        ui.input_radio_buttons(
-                            "weekly_setting",
-                            "",
-                            choices={
-                                    "calendar": "Calendar Week",
-                                    "last_7_days": "Last 7 Days",
-                                },
-                            selected="calendar"
-                        )
+            ui.input_radio_buttons(
+                "weekly_setting",
+                "",
+                choices={
+                    "calendar": "Calendar Week",
+                    "last_7_days": "Last 7 Days",
+                },
+                selected="calendar",
+                inline=True,
+            )
         with ui.layout_columns(fill=False):
     
             with ui.value_box(showcase=ui.img(src="flight_socks.jpeg", style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; margin-top: 10px;", showcase_layout="left center")):
@@ -321,52 +366,82 @@ with ui.layout_sidebar():
             
             #                             f"{currency_symbol()}{week_gas:,.2f}"
 
-            with ui.card():
-                @render_plotly
-                def weekly_pie_chart():
+
+            with ui.card(class_="weekly-donut-card"):
+                ui.h5("Weekly spending by category", class_="weekly-donut-title")
+
+                @render.plot(alt="Weekly spending by category")
+                def weekly_donut():
                     price_col = input.weekly_currency()
 
-                    pie_df = (
+                    donut_df = (
                         week_df()
                         .groupby("Category", as_index=False)[price_col]
                         .sum()
                     )
 
-                    fig = px.pie(
-                        pie_df,
-                        names="Category",
-                        values=price_col,
-                        title="Weekly Spending by Category",
-                        template="seaborn",
+                    donut_df = donut_df[donut_df[price_col] > 0]
+
+                    fig, ax = plt.subplots(figsize=(4.4, 4.6), dpi=150)
+
+                    if donut_df.empty:
+                        ax.text(
+                            0.5, 0.5, "No spending this week",
+                            ha="center", va="center", fontsize=13,
+                        )
+                        ax.axis("off")
+                        return fig
+
+                    colors = [
+                        "#2ca02c",  # green
+                        "#1f77b4",  # blue
+                        "#ff7f0e",  # orange
+                        "#9467bd",  # purple
+                        "#a21414",  # red
+                        "#17becf",  # teal
+                    ]
+
+                    total = donut_df[price_col].sum()
+                    symbol = currency_symbol()
+
+                    wedges, _ = ax.pie(
+                        donut_df[price_col],
+                        colors=colors[:len(donut_df)],
+                        startangle=90,
+                        counterclock=False,
+                        wedgeprops=dict(width=0.38, edgecolor="white", linewidth=2),
                     )
 
-                    fig.update_traces(
-                            texttemplate=f"{currency_symbol()}%{{value:,.0f}}",
-                            textinfo="label+text",
-                            hovertemplate=(
-                                "<b>%{label}</b><br>"
-                                f"Spent: {currency_symbol()}%{{value:,.2f}}"
-                                "<extra></extra>"
-                            ),
-                        )
-
-                    fig.update_layout(
-                        height=320,
-                        margin=dict(l=10, r=10, t=55, b=70),
-                        title=dict(
-                            text="Weekly Spending by Category",
-                            x=0.5,
-                            xanchor="center",
-                            font=dict(size=18),
-                        ),
-                        legend=dict(
-                            orientation="h",
-                            yanchor="top",
-                            y=-0.15,
-                            xanchor="center",
-                            x=0.5,
-                        )
+                    ax.text(
+                        0, 0.10, "Total",
+                        ha="center", va="center",
+                        fontsize=10, color="#6c757d",
                     )
+                    ax.text(
+                        0, -0.08, f"{symbol}{total:,.0f}",
+                        ha="center", va="center",
+                        fontsize=19, fontweight="bold", color="#212529",
+                    )
+
+                    legend_labels = [
+                        f"{row['Category']}  {symbol}{row[price_col]:,.0f}"
+                        for _, row in donut_df.iterrows()
+                    ]
+
+                    ax.legend(
+                        wedges,
+                        legend_labels,
+                        loc="upper center",
+                        bbox_to_anchor=(0.5, -0.03),
+                        ncol=2,
+                        frameon=False,
+                        fontsize=8,
+                        columnspacing=1.2,
+                        handlelength=1,
+                    )
+
+                    ax.set(aspect="equal")
+                    fig.subplots_adjust(top=0.95, bottom=0.18)
 
                     return fig
 
