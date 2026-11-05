@@ -199,9 +199,10 @@ ui.tags.style("""
     .weekly-summary .js-plotly-plot {
         width: 100% !important;
     }
+}
 
 .weekly-donut-card {
-    max-width: 460px;
+    max-width: 360px;
     margin: 12px auto;
 }
 
@@ -217,11 +218,61 @@ ui.tags.style("""
     display: block;
 }
 
+.weekly-category-card {
+    display: none;
+    max-width: 420px;
+    margin: 12px auto;
+}
+
+.weekly-category-title {
+    margin: 0 0 8px;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.weekly-category-row {
+    display: grid;
+    grid-template-columns: 12px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 0;
+    border-bottom: 1px solid #edf0f2;
+}
+
+.weekly-category-row:last-child {
+    border-bottom: 0;
+}
+
+.weekly-category-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.weekly-category-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.weekly-category-value {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
 @media (max-width: 576px) {
     .weekly-donut-card {
+        display: none;
+    }
+
+    .weekly-category-card {
+        display: block;
         margin: 10px 0;
     }
 
+    .weekly-summary .bslib-value-box {
+        min-height: 72px;
+    }
 }
 """)
 
