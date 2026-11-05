@@ -869,9 +869,12 @@ def week_df():
 
     # If last 7 days selected, dataframe filters to last 7 days
     else:
-        cutoff_date = date.today() - pd.Timedelta(days=6)
+        today = date.today()
+        cutoff_date = today - pd.Timedelta(days=6)
+
         week_expenses = df[
-            df["Date"].dt.date >= cutoff_date
+            (df["Date"].dt.date >= cutoff_date)
+            & (df["Date"].dt.date <= today)
         ]
 
     return week_expenses
