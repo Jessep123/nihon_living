@@ -287,6 +287,26 @@ ui.tags.style("""
     font-variant-numeric: tabular-nums;
 }
 
+.weekly-category-total {
+    margin-bottom: 4px;
+    padding: 12px 10px;
+    background: #f4f7f8;
+    border: 0;
+    border-radius: 10px;
+}
+
+.weekly-category-total .weekly-category-name,
+.weekly-category-total .weekly-category-value {
+    font-weight: 700;
+}
+
+.weekly-category-total-marker {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #212529;
+}
+
 .weekly-transactions {
     margin-top: 12px;
     border-top: 1px solid #edf0f2;
@@ -388,16 +408,16 @@ with ui.layout_sidebar():
                 selected="calendar",
                 inline=True,
             )
-        with ui.layout_columns(fill=False):
+        # with ui.layout_columns(fill=False):
     
-            with ui.value_box(showcase=ui.img(src="flight_socks.jpeg", style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; margin-top: 10px;", showcase_layout="left center")):
-                        "Total"
-                        @render.express
-                        def week_cost():
-                            week_expenses = week_df()
-                            price_col = input.weekly_currency()
-                            cost = week_expenses[price_col].sum()
-                            f"{currency_symbol()}{cost:,.2f}"
+            # with ui.value_box(showcase=ui.img(src="flight_socks.jpeg", style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; margin-top: 10px;", showcase_layout="left center")):
+            #             "Total"
+            #             @render.express
+            #             def week_cost():
+            #                 week_expenses = week_df()
+            #                 price_col = input.weekly_currency()
+            #                 cost = week_expenses[price_col].sum()
+            #                 f"{currency_symbol()}{cost:,.2f}"
 
             # with ui.value_box(showcase=ui.img(src="chomp.jpeg", style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; margin-top: 10px;", showcase_layout="left center")):
             #     "Groceries"
@@ -551,15 +571,36 @@ with ui.layout_sidebar():
                     .groupby("Category", as_index=False)[price_col]
                     .sum()
                 )
-                category_df = category_df[category_df[price_col] > 0]
-                category_df = category_df.sort_values(price_col, ascending=False)
 
-                if category_df.empty:
-                    return ui.p("No spending this week.")
+                if "Gas" not in category_df["Category"].values:
+                    category_df = pd.concat(
+                        [
+                            category_df,
+                            pd.DataFrame({"Category": ["Gas"], price_col: [0]}),
+                        ],
+                        ignore_index=True,
+                    )
+
+                total = category_df[price_col].sum()
+                category_df = category_df[
+                    (category_df[price_col] > 0)
+                    | (category_df["Category"] == "Gas")
+                ]
+                category_df = category_df.sort_values(price_col, ascending=False)
 
                 colors = ["#2ca02c", "#1f77b4", "#ff7f0e", "#9467bd", "#a21414", "#17becf"]
                 symbol = currency_symbol()
-                rows = []
+                rows = [
+                    ui.div(
+                        ui.span(class_="weekly-category-total-marker"),
+                        ui.span("Total", class_="weekly-category-name"),
+                        ui.span(
+                            f"{symbol}{total:,.0f}",
+                            class_="weekly-category-value",
+                        ),
+                        class_="weekly-category-row weekly-category-total",
+                    )
+                ]
 
                 for index, (_, row) in enumerate(category_df.iterrows()):
                     rows.append(
@@ -683,7 +724,7 @@ with ui.layout_sidebar():
                     ui.input_radio_buttons(
                         "today_currency",
                         "",
-                        choices={"Price NZD": "NZD", "Price": "Yen"},
+                        choices={"Price": "Yen", "Price NZD": "NZD"},
                         selected="Price"
                     )
 
