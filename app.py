@@ -433,7 +433,7 @@ with ui.layout_sidebar():
 
                 donut_df = donut_df[donut_df[price_col] > 0]
 
-                fig, ax = plt.subplots(figsize=(4.4, 4.6), dpi=150)
+                fig, ax = plt.subplots(figsize=(3.1, 3.3), dpi=150)
 
                 if donut_df.empty:
                     ax.text(
@@ -466,12 +466,12 @@ with ui.layout_sidebar():
                 ax.text(
                     0, 0.10, "Total",
                     ha="center", va="center",
-                    fontsize=10, color="#6c757d",
+                    fontsize=9, color="#6c757d",
                 )
                 ax.text(
                     0, -0.08, f"{symbol}{total:,.0f}",
                     ha="center", va="center",
-                    fontsize=19, fontweight="bold", color="#212529",
+                    fontsize=15, fontweight="bold", color="#212529",
                 )
 
                 legend_labels = [
@@ -484,7 +484,7 @@ with ui.layout_sidebar():
                     legend_labels,
                     loc="upper center",
                     bbox_to_anchor=(0.5, -0.03),
-                    ncol=2,
+                    ncol=1,
                     frameon=False,
                     fontsize=8,
                     columnspacing=1.2,
@@ -492,9 +492,48 @@ with ui.layout_sidebar():
                 )
 
                 ax.set(aspect="equal")
-                fig.subplots_adjust(top=0.95, bottom=0.18)
+                fig.subplots_adjust(top=0.92, bottom=0.27)
 
                 return fig
+
+        with ui.card(class_="weekly-category-card"):
+            ui.h5("Weekly spending", class_="weekly-category-title")
+
+            @render.ui
+            def weekly_category_list():
+                price_col = input.weekly_currency()
+                category_df = (
+                    week_df()
+                    .groupby("Category", as_index=False)[price_col]
+                    .sum()
+                )
+                category_df = category_df[category_df[price_col] > 0]
+                category_df = category_df.sort_values(price_col, ascending=False)
+
+                if category_df.empty:
+                    return ui.p("No spending this week.")
+
+                colors = ["#2ca02c", "#1f77b4", "#ff7f0e", "#9467bd", "#a21414", "#17becf"]
+                symbol = currency_symbol()
+                rows = []
+
+                for index, (_, row) in enumerate(category_df.iterrows()):
+                    rows.append(
+                        ui.div(
+                            ui.span(
+                                class_="weekly-category-dot",
+                                style=f"background-color: {colors[index % len(colors)]};",
+                            ),
+                            ui.span(str(row["Category"]), class_="weekly-category-name"),
+                            ui.span(
+                                f"{symbol}{row[price_col]:,.0f}",
+                                class_="weekly-category-value",
+                            ),
+                            class_="weekly-category-row",
+                        )
+                    )
+
+                return ui.div(*rows, class_="weekly-category-list")
 
             @render.data_frame
             def week_table():
@@ -502,10 +541,8 @@ with ui.layout_sidebar():
 
                 columns_to_show = [
                     "Category",
-                    "Price",
-                    "Price NZD",
+                    input.weekly_currency(),
                     "Note",
-                    "Person"
                 ]
                 df["Price NZD"] = df["Price NZD"].round(2)
                 df["Price"] = df["Price"].round(2)
