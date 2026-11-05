@@ -145,6 +145,31 @@ ui.tags.style("""
     margin-bottom: 12px;
 }
 
+.weekly-summary {
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 16px;
+    background: #ffffff;
+    border: 1px solid #e8eaed;
+    border-radius: 18px;
+    box-shadow: 0 3px 14px rgba(0, 0, 0, 0.06);
+}
+
+.weekly-summary .bslib-value-box,
+.weekly-summary .weekly-category-card,
+.weekly-summary .weekly-donut-card {
+    margin-left: 0;
+    margin-right: 0;
+    border: 0;
+    box-shadow: none;
+    background: transparent;
+}
+
+.weekly-summary .bslib-value-box {
+    padding-left: 0;
+    padding-right: 0;
+}
+
 .weekly-controls {
     display: flex;
     flex-wrap: wrap;
@@ -165,7 +190,9 @@ ui.tags.style("""
 
 @media (max-width: 576px) {
     .weekly-summary {
-        padding: 0 4px;
+        margin: 0;
+        padding: 12px;
+        border-radius: 14px;
     }
 
     .weekly-summary .bslib-value-box {
@@ -258,6 +285,23 @@ ui.tags.style("""
 .weekly-category-value {
     font-weight: 600;
     font-variant-numeric: tabular-nums;
+}
+
+.weekly-transactions {
+    margin-top: 12px;
+    border-top: 1px solid #edf0f2;
+}
+
+.weekly-transactions summary {
+    padding: 12px 0;
+    cursor: pointer;
+    font-weight: 600;
+    color: #343a40;
+}
+
+.weekly-transactions[open] summary {
+    border-bottom: 1px solid #edf0f2;
+    margin-bottom: 10px;
 }
 
 @media (max-width: 576px) {
@@ -535,6 +579,9 @@ with ui.layout_sidebar():
 
                 return ui.div(*rows, class_="weekly-category-list")
 
+        with ui.tags.details(class_="weekly-transactions"):
+            ui.tags.summary("View transactions")
+
             @render.data_frame
             def week_table():
                 df = week_df()
@@ -767,6 +814,7 @@ def today_df():
 @reactive.calc
 def week_df():
     df = filtered_df_person().copy()
+    df["Date"] = pd.to_datetime(df["Date"])
 
     setting = input.weekly_setting()
 
@@ -780,9 +828,9 @@ def week_df():
 
     # If last 7 days selected, dataframe filters to last 7 days
     else:
-        cutoff_date = date.today() - pd.Timedelta(days=6)  
+        cutoff_date = date.today() - pd.Timedelta(days=6)
         week_expenses = df[
-            (df['Date'].dt.isocalendar().day >= cutoff_date)
+            df["Date"].dt.date >= cutoff_date
         ]
 
     return week_expenses
