@@ -389,7 +389,6 @@ with ui.layout_sidebar():
 # Weekly Summary
 # ================================================================================================================================
     with ui.panel_conditional("input.view == 'Weekly Summary'", class_="weekly-summary"):
-        
 
         with ui.card(class_="weekly-category-card"):
             ui.h5("Weekly spending", class_="weekly-category-title")
@@ -402,15 +401,6 @@ with ui.layout_sidebar():
                     .groupby("Category", as_index=False)[price_col]
                     .sum()
                 )
-
-                # if "Gas" not in category_df["Category"].values:
-                #     category_df = pd.concat(
-                #         [
-                #             category_df,
-                #             pd.DataFrame({"Category": ["Gas"], price_col: [0]}),
-                #         ],
-                #         ignore_index=True,
-                #     )
 
                 total = category_df[price_col].sum()
                 category_df = category_df[
@@ -490,111 +480,65 @@ with ui.layout_sidebar():
 # ================================================================================================================================
 # Today Tab
 # ================================================================================================================================
-    with ui.panel_conditional("input.view == 'Today'"):
-                with ui.layout_columns(fill=False):
-                    ui.input_date(
-                                            "today_date",
-                                            "Select day",
-                                            value=date.today(),
-                                            min=min_date,
-                                            max=max_date,
-                                        )
-                    
-                    with ui.value_box(showcase=ui.img(src="flight_socks.jpeg", style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; margin-top: 10px;", showcase_layout="left center")):
-                        "Total"
-                        @render.express
-                        def today_cost():
-                            today_expenses = today_df()
-                            price_col = input.today_currency()
-                            cost = today_expenses[price_col].sum()
-                            f"{currency_symbol()}{cost:,.2f}"
+    with ui.panel_conditional("input.view == 'Today'", class_="weekly-summary today-summary"):
+        # The day picker stays above the same summary layout used by Weekly Summary.
+        with ui.div(class_="today-date-control"):
+            ui.input_date(
+                "today_date", "Select day", value=date.today(), min=min_date, max=max_date,
+            )
 
-                    with ui.value_box(showcase=ui.img(src="chomp.jpeg", style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; margin-top: 10px;", showcase_layout="left center")):
-                        "Groceries"
-                        @render.express
-                        def groceries_today():
-                            today_expenses = today_df()
-                            price_col = input.today_currency()
+        with ui.card(class_="weekly-category-card"):
+            ui.h5("Today's spending", class_="weekly-category-title")
 
-                            today_groceries = (
-                                today_expenses.loc[
-                                    today_expenses["Category"] == "Groceries",
-                                    price_col
-                                ].sum()
-                            )
-                            f"{currency_symbol()}{today_groceries:,.2f}"
+            @render.ui
+            def today_category_list():
+                price_col = input.today_currency()
+                category_df = today_df().groupby("Category", as_index=False)[price_col].sum()
+                total = category_df[price_col].sum()
+                category_df = category_df[
+                    (category_df[price_col] > 0) | (category_df["Category"] == "Gas")
+                ].sort_values(price_col, ascending=False)
 
-                    with ui.value_box(showcase=ui.img(src="chomp.jpeg", style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; margin-top: 10px;", showcase_layout="left center")):
-                                            "Eating Out"
-                                            @render.express
-                                            def eating_out_today():
-                                                today_expenses = today_df()
-                                                price_col = input.today_currency()
-                    
-                                                today_snacks = (
-                                                    today_expenses.loc[
-                                                        today_expenses["Category"] == "Eating Out",
-                                                        price_col
-                                                    ].sum()
-                                                )
-                                                f"{currency_symbol()}{today_snacks:,.2f}"
-
-                    with ui.value_box(showcase=ui.img(src="woof.jpeg", style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; margin-top: 10px;", showcase_layout="left center")):
-                        "Misc"
-                        @render.express
-                        def misc_today():
-                            today_expenses = today_df()
-                            price_col = input.today_currency()
-
-                            today_misc = (
-                                today_expenses.loc[
-                                    today_expenses["Category"] == "Misc",
-                                    price_col
-                                ].sum()
-                            )
-
-                            f"{currency_symbol()}{today_misc:,.2f}"
-
-                    with ui.value_box(showcase=ui.img(src="woof.jpeg", style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; margin-top: 10px;", showcase_layout="left center")):
-                                            "Gas"
-                                            @render.express
-                                            def gas_today():
-                                                today_expenses = today_df()
-                                                price_col = input.today_currency()
-                    
-                                                today_gas = (
-                                                    today_expenses.loc[
-                                                        today_expenses["Category"] == "Gas",
-                                                        price_col
-                                                    ].sum()
-                                                )
-                    
-                                                f"{currency_symbol()}{today_gas:,.2f}"
-
-                    
-                    ui.input_radio_buttons(
-                        "today_currency",
-                        "",
-                        choices={"Price": "Yen", "Price NZD": "NZD"},
-                        selected="Price"
+                colors = ["#2ca02c", "#1f77b4", "#ff7f0e", "#9467bd", "#a21414", "#17becf"]
+                symbol = "$" if price_col == "Price NZD" else "\N{YEN SIGN}"
+                rows = [
+                    ui.div(
+                        ui.span(class_="weekly-category-total-marker"),
+                        ui.span("Total", class_="weekly-category-name"),
+                        ui.span(f"{symbol}{total:,.0f}", class_="weekly-category-value"),
+                        class_="weekly-category-row weekly-category-total",
                     )
+                ]
+                for index, (_, row) in enumerate(category_df.iterrows()):
+                    rows.append(
+                        ui.div(
+                            ui.span(class_="weekly-category-dot", style=f"background-color: {colors[index % len(colors)]};"),
+                            ui.span(str(row["Category"]), class_="weekly-category-name"),
+                            ui.span(f"{symbol}{row[price_col]:,.0f}", class_="weekly-category-value"),
+                            class_="weekly-category-row",
+                        )
+                    )
+                return ui.div(*rows, class_="weekly-category-list")
 
+        with ui.tags.details(class_="weekly-transactions"):
+            ui.tags.summary("View transactions")
 
-                    @render.data_frame
-                    def today_table():
-                        df = today_df()
+            @render.data_frame
+            def today_table():
+                df = today_df().copy()
+                columns_to_show = ["Category", input.today_currency(), "Note"]
+                df["Price NZD"] = df["Price NZD"].round(2)
+                df["Price"] = df["Price"].round(2)
+                return df[columns_to_show]
 
-                        columns_to_show = [
-                            "Category",
-                            "Price",
-                            "Price NZD",
-                            "Note",
-                            "Person"
-                        ]
-                        df["Price NZD"] = df["Price NZD"].round(2)
-                        df["Price"] = df["Price"].round(2)
-
-                        return df[columns_to_show]
+        with ui.div(class_="weekly-controls"):
+            ui.input_radio_buttons(
+                "today_currency",
+                "",
+                choices={"Price NZD": "NZD", "Price": "Yen"},
+                selected="Price",
+                inline=True,
+            )
 
 # ================================================================================================================================
 # Summary Stats Tab
