@@ -389,25 +389,6 @@ with ui.layout_sidebar():
 # Weekly Summary
 # ================================================================================================================================
     with ui.panel_conditional("input.view == 'Weekly Summary'", class_="weekly-summary"):
-        with ui.div(class_="weekly-controls"):
-            ui.input_radio_buttons(
-                "weekly_currency",
-                "",
-                choices={"Price NZD": "NZD", "Price": "Yen"},
-                selected="Price",
-                inline=True,
-            )
-
-            ui.input_radio_buttons(
-                "weekly_setting",
-                "",
-                choices={
-                    "calendar": "Calendar Week",
-                    "last_7_days": "Last 7 Days",
-                },
-                selected="calendar",
-                inline=True,
-            )
         # with ui.layout_columns(fill=False):
     
             # with ui.value_box(showcase=ui.img(src="flight_socks.jpeg", style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; margin-top: 10px;", showcase_layout="left center")):
@@ -636,6 +617,26 @@ with ui.layout_sidebar():
                 df["Price"] = df["Price"].round(2)
 
                 return df[columns_to_show]
+
+        with ui.div(class_="weekly-controls"):
+            ui.input_radio_buttons(
+                "weekly_currency",
+                "",
+                choices={"Price NZD": "NZD", "Price": "Yen"},
+                selected="Price",
+                inline=True,
+            )
+
+            ui.input_radio_buttons(
+                "weekly_setting",
+                "",
+                choices={
+                    "calendar": "Calendar Week",
+                    "last_7_days": "Last 7 Days",
+                },
+                selected="calendar",
+                inline=True,
+            )
 # ================================================================================================================================
 # Today Tab
 # ================================================================================================================================
