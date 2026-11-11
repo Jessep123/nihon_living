@@ -246,7 +246,7 @@ ui.tags.style("""
 }
 
 .weekly-category-card {
-    display: none;
+    display: block;
     max-width: 420px;
     margin: 12px auto;
 }
@@ -389,157 +389,7 @@ with ui.layout_sidebar():
 # Weekly Summary
 # ================================================================================================================================
     with ui.panel_conditional("input.view == 'Weekly Summary'", class_="weekly-summary"):
-        # with ui.layout_columns(fill=False):
-    
-            # with ui.value_box(showcase=ui.img(src="flight_socks.jpeg", style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; margin-top: 10px;", showcase_layout="left center")):
-            #             "Total"
-            #             @render.express
-            #             def week_cost():
-            #                 week_expenses = week_df()
-            #                 price_col = input.weekly_currency()
-            #                 cost = week_expenses[price_col].sum()
-            #                 f"{currency_symbol()}{cost:,.2f}"
-
-            # with ui.value_box(showcase=ui.img(src="chomp.jpeg", style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; margin-top: 10px;", showcase_layout="left center")):
-            #     "Groceries"
-            #     @render.express
-            #     def groceries_week():
-            #         week_expenses = week_df()
-            #         price_col = input.weekly_currency()
-
-            #         week_groceries = (
-            #             week_expenses.loc[
-            #                 week_expenses["Category"] == "Groceries",
-            #                 price_col
-            #             ].sum()
-            #         )
-            #         f"{currency_symbol()}{week_groceries:,.2f}"
-
-            # with ui.value_box(showcase=ui.img(src="chomp.jpeg", style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; margin-top: 10px;", showcase_layout="left center")):
-            #                         "Eating Out"
-            #                         @render.express
-            #                         def eating_out_week():
-            #                             week_expenses = week_df()
-            #                             price_col = input.weekly_currency()
-
-            #                             week_snacks = (
-            #                                 week_expenses.loc[
-            #                                     week_expenses["Category"] == "Eating Out",
-            #                                     price_col
-            #                                 ].sum()
-            #                             )
-            #                             f"{currency_symbol()}{week_snacks:,.2f}"
-
-            # with ui.value_box(showcase=ui.img(src="woof.jpeg", style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; margin-top: 10px;", showcase_layout="left center")):
-            #     "Misc"
-            #     @render.express
-            #     def misc_week():
-            #         week_expenses = week_df()
-            #         price_col = input.weekly_currency()
-
-            #         week_misc = (
-            #             week_expenses.loc[
-            #                 week_expenses["Category"] == "Misc",
-            #                 price_col
-            #             ].sum()
-            #         )
-
-            #         f"{currency_symbol()}{week_misc:,.2f}"
-
-            # with ui.value_box(showcase=ui.img(src="woof.jpeg", style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; margin-top: 10px;", showcase_layout="left center")):
-            #                         "Gas"
-            #                         @render.express
-            #                         def gas_week():
-            #                             week_expenses = week_df()
-            #                             price_col = input.weekly_currency()
-
-            #                             week_gas = (
-            #                                 week_expenses.loc[
-            #                                     week_expenses["Category"] == "Gas",
-            #                                     price_col
-            #                                 ].sum()
-            #                             )
-            
-            #                             f"{currency_symbol()}{week_gas:,.2f}"
-
-
-        with ui.card(class_="weekly-donut-card"):
-            ui.h5("Weekly spending by category", class_="weekly-donut-title")
-
-            @render.plot(alt="Weekly spending by category")
-            def weekly_donut():
-                price_col = input.weekly_currency()
-
-                donut_df = (
-                    week_df()
-                    .groupby("Category", as_index=False)[price_col]
-                    .sum()
-                )
-
-                donut_df = donut_df[donut_df[price_col] > 0]
-
-                fig, ax = plt.subplots(figsize=(3.1, 3.3), dpi=150)
-
-                if donut_df.empty:
-                    ax.text(
-                        0.5, 0.5, "No spending this week",
-                        ha="center", va="center", fontsize=13,
-                    )
-                    ax.axis("off")
-                    return fig
-
-                colors = [
-                    "#2ca02c",  # green
-                    "#1f77b4",  # blue
-                    "#ff7f0e",  # orange
-                    "#9467bd",  # purple
-                    "#a21414",  # red
-                    "#17becf",  # teal
-                ]
-
-                total = donut_df[price_col].sum()
-                symbol = currency_symbol()
-
-                wedges, _ = ax.pie(
-                    donut_df[price_col],
-                    colors=colors[:len(donut_df)],
-                    startangle=90,
-                    counterclock=False,
-                    wedgeprops=dict(width=0.38, edgecolor="white", linewidth=2),
-                )
-
-                ax.text(
-                    0, 0.10, "Total",
-                    ha="center", va="center",
-                    fontsize=9, color="#6c757d",
-                )
-                ax.text(
-                    0, -0.08, f"{symbol}{total:,.0f}",
-                    ha="center", va="center",
-                    fontsize=15, fontweight="bold", color="#212529",
-                )
-
-                legend_labels = [
-                    f"{row['Category']}  {symbol}{row[price_col]:,.0f}"
-                    for _, row in donut_df.iterrows()
-                ]
-
-                ax.legend(
-                    wedges,
-                    legend_labels,
-                    loc="upper center",
-                    bbox_to_anchor=(0.5, -0.03),
-                    ncol=1,
-                    frameon=False,
-                    fontsize=8,
-                    columnspacing=1.2,
-                    handlelength=1,
-                )
-
-                ax.set(aspect="equal")
-                fig.subplots_adjust(top=0.92, bottom=0.27)
-
-                return fig
+        
 
         with ui.card(class_="weekly-category-card"):
             ui.h5("Weekly spending", class_="weekly-category-title")
@@ -553,14 +403,14 @@ with ui.layout_sidebar():
                     .sum()
                 )
 
-                if "Gas" not in category_df["Category"].values:
-                    category_df = pd.concat(
-                        [
-                            category_df,
-                            pd.DataFrame({"Category": ["Gas"], price_col: [0]}),
-                        ],
-                        ignore_index=True,
-                    )
+                # if "Gas" not in category_df["Category"].values:
+                #     category_df = pd.concat(
+                #         [
+                #             category_df,
+                #             pd.DataFrame({"Category": ["Gas"], price_col: [0]}),
+                #         ],
+                #         ignore_index=True,
+                #     )
 
                 total = category_df[price_col].sum()
                 category_df = category_df[
